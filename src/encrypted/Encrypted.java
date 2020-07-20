@@ -7,25 +7,39 @@ public class Encrypted {
 	static Scanner sc = new Scanner(System.in);
 	
 	public static void main(String[] args) {
+		String choix = sc.nextLine();
 		String msg = sc.nextLine();
 		int key = sc.nextInt();
-		msg = msg.toLowerCase(); 
-		System.out.println(msgCrypt(msg, key));
+		
+		switch (choix) {
+		case "enc":
+			System.out.println(msgCrypt(msg, key));
+			break;	
+		case "dec":
+			System.out.println(msgDecrypt(msg, key));
+			break;
+		}
 	}
 	
 	static char encrypt(int key , char ch) {
-		int nbrCh = (int)ch - 96;
-		int newPos = (nbrCh + key) % 26;
-		char chCryp = (char)(newPos + 96);
-		return chCryp;
+		int nb = (int)ch + key;
+		return (char)nb;
 	}
 	static String msgCrypt(String msg, int key) {
 		String res = "";
 		for (int i = 0; i < msg.length(); i++) {
-			if (msg.charAt(i) >= 'a' && msg.charAt(i) <= 'z')
-				res += encrypt(key, msg.charAt(i));
-			else
-				res += msg.charAt(i);
+			res += encrypt(key, msg.charAt(i));
+		}
+		return res;
+	}
+	static char decrypt(int key, char ch) {
+		int nb = (int)ch - key;
+		return (char)nb;
+	}
+	static String msgDecrypt(String msg, int key) {
+		String res = "";
+		for (int i = 0; i < msg.length(); i++) {
+			res += decrypt(key, msg.charAt(i));
 		}
 		return res;
 	}
