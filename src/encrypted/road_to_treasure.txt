@@ -1,1 +1,1 @@
-/welcome to java
+Welcome to hyperskill!

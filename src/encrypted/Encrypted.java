@@ -18,27 +18,37 @@ public class Encrypted {
 		String msg = data(args);
 		if (msg.startsWith("\""))
 			msg = msg.substring(1,msg.length() - 1);
+		String algUS = alg(args);
+		Alg typeCryp = null;
+		if (algUS.contentEquals("unicode")) 
+			typeCryp = new Unicode();
+		else if (algUS.contentEquals("shift")) 
+			typeCryp = new Shift();
 
 		switch (choix) {
 		case "enc":
 			if ((!inFile(args).isEmpty() && !msg.isEmpty()) || (!msg.isEmpty())) { // prefer data on file
-				res = msgCrypt(msg, key).trim();
+				res = typeCryp.msgCrypt(msg, key).trim();
+				//res = msgCrypt(msg, key).trim();
 				showCryp(res, args);
 			}
 			else if (!inFile(args).isEmpty()) { // from file
 				String fileContient = dataFromFile(inFile(args));
-				res = msgCrypt(fileContient, key);
+				res = typeCryp.msgCrypt(fileContient, key);
+				//res = msgCrypt(fileContient, key);
 				showCryp(res, args);
 			}
 			break;	
 		case "dec":
 			if ((!inFile(args).isEmpty() && !msg.isEmpty()) || (!msg.isEmpty())) { // prefer data on file
-				res = msgDecrypt(msg, key).trim();
+				res = typeCryp.msgDecrypt(msg, key).trim();
+				//res = msgDecrypt(msg, key).trim();
 				showCryp(res, args);
 			}
 			else if (!inFile(args).isEmpty()) { // from file
 				String fileContient = dataFromFile(inFile(args));
-				res = msgDecrypt(fileContient, key);
+				res = typeCryp.msgDecrypt(fileContient, key);
+				//res = msgDecrypt(fileContient, key);
 				showCryp(res, args);
 			}
 			break;
@@ -69,6 +79,26 @@ public class Encrypted {
 		String d = "";
 		for (int i = 0; i < arr.length; i++) {
 			if (arr[i].equals("-data")) {
+				i++;
+				d += arr[i];
+				i++;
+				while(i < arr.length) {
+					if (!arr[i].startsWith("-")) {
+						d = d + " " + arr[i];
+						i++;
+					}
+					else
+						break;
+				}
+				break;
+			}
+		}
+		return d;
+	}
+	static String alg(String[] arr) {
+		String d = "";
+		for (int i = 0; i < arr.length; i++) {
+			if (arr[i].equals("-alg")) {
 				i++;
 				d += arr[i];
 				i++;
@@ -155,27 +185,76 @@ public class Encrypted {
 		else
 			printerFile(res, outFile(arr));
 	}
-	
-	static char encrypt(int key , char ch) {
-		int nb = (int)ch + key;
-		return (char)nb;
-	}
-	static String msgCrypt(String msg, int key) {
+}
+
+abstract class Alg{
+	abstract char encrypt(int key, char ch);
+	abstract char decrypt(int key, char ch);
+	String msgCrypt(String msg, int key) {
 		String res = "";
 		for (int i = 0; i < msg.length(); i++) {
 			res += encrypt(key, msg.charAt(i));
 		}
 		return res;
 	}
-	static char decrypt(int key, char ch) {
-		int nb = (int)ch - key;
-		return (char)nb;
-	}
-	static String msgDecrypt(String msg, int key) {
+	String msgDecrypt(String msg, int key) {
 		String res = "";
 		for (int i = 0; i < msg.length(); i++) {
 			res += decrypt(key, msg.charAt(i));
 		}
 		return res;
+	}
+}
+class Unicode extends Alg{
+	@Override
+	char encrypt(int key, char ch) {
+		int nb = (int)ch + key;
+		return (char)nb;
+	}
+	@Override
+	char decrypt(int key, char ch) {
+		int nb = (int)ch - key;
+		return (char)nb;
+	}
+}
+class Shift extends Alg{
+	char encrypt(int key, char ch) {
+		int n = (int)ch;
+		if (n >= 65 && n <= 90 || n >= 97 && n <= 122) {
+			boolean upperCase = n >= 65 && n <= 90;
+			if (upperCase) {
+				int nbrCh = (int)ch - 64;
+				int newPos = (nbrCh + key) % 26;
+				char chCryp = (char)(newPos + 64);
+				return chCryp;
+			}
+			else {
+				int nbrCh = (int)ch - 96;
+				int newPos = (nbrCh + key) % 26;
+				char chCryp = (char)(newPos + 96);
+				return chCryp;
+			}
+		}
+		return ch;
+	}
+	@Override
+	char decrypt(int key, char ch) {
+		int n = (int)ch;
+		if (n >= 65 && n <= 90 || n >= 97 && n <= 122) {
+			boolean upperCase = n >= 65 && n <= 90;
+			if (upperCase) {
+				int nbrCh = (int)ch - 64;
+				int newPos = (nbrCh - key + 26) % 26;
+				char chCryp = (char)(newPos + 64);
+				return chCryp;
+			}
+			else {
+				int nbrCh = (int)ch - 96;
+				int newPos = (nbrCh - key + 26) % 26;
+				char chCryp = (char)(newPos + 96);
+				return chCryp;
+			}
+		}
+		return ch;
 	}
 }
